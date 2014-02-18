@@ -19,20 +19,16 @@
  */
 package objectpoolbenchmark.suite.commonspool2;
 
+import objectpoolbenchmark.suite.Costs;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 
 public class MyPooledObjectFactory extends BasePooledObjectFactory<MyCommons2Object> {
-  private final long ttlMillis;
-
-  public MyPooledObjectFactory(long ttlMillis) {
-
-    this.ttlMillis = ttlMillis;
-  }
 
   @Override
   public MyCommons2Object create() throws Exception {
+    Costs.expendAllocation();
     return new MyCommons2Object();
   }
 
@@ -43,6 +39,12 @@ public class MyPooledObjectFactory extends BasePooledObjectFactory<MyCommons2Obj
 
   @Override
   public boolean validateObject(PooledObject<MyCommons2Object> p) {
-    return System.currentTimeMillis() <= p.getCreateTime() + ttlMillis;
+    Costs.expendValidation();
+    return true;
+  }
+
+  @Override
+  public void destroyObject(PooledObject<MyCommons2Object> p) throws Exception {
+    Costs.expendDeallocation();
   }
 }

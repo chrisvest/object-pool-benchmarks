@@ -26,10 +26,7 @@ import nf.fr.eraasoft.pool.impl.PoolControler;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.openjdk.jmh.annotations.*;
-import stormpot.Config;
-import stormpot.LifecycledPool;
-import stormpot.TimeExpiration;
-import stormpot.Timeout;
+import stormpot.*;
 import objectpoolbenchmark.suite.commonspool.MyCommonsObject;
 import objectpoolbenchmark.suite.commonspool.MyPoolableObjectFactory;
 import objectpoolbenchmark.suite.commonspool2.MyCommons2Object;
@@ -45,7 +42,6 @@ import stormpot.qpool.QueuePool;
 public abstract class ClaimRelease
 {
   protected static final int poolSize = Integer.getInteger("pool.size", 10);
-  protected static final long ttlMillis = Long.getLong("pool.ttl.ms", 10_000 * 60); // 10 minutes
   protected static final int objsToClaim = Integer.getInteger("cycle.claim.count", 1);
 
   @Setup
@@ -86,7 +82,14 @@ public abstract class ClaimRelease
     public void preparePool() {
       Config<GenericPoolable> config = new Config<>().setAllocator(new GenericAllocator());
       config.setSize(poolSize);
-      config.setExpiration(new TimeExpiration(ttlMillis, TimeUnit.MILLISECONDS));
+      Expiration<GenericPoolable> expiration = new Expiration<GenericPoolable>() {
+        @Override
+        public boolean hasExpired(SlotInfo<? extends GenericPoolable> info) {
+          Costs.expendValidation();
+          return false;
+        }
+      };
+      config.setExpiration(expiration);
       pool = buildPool(config);
     }
 
@@ -127,7 +130,7 @@ public abstract class ClaimRelease
 
     @Override
     public void preparePool() throws Exception {
-      PoolSettings<MyFuriousObject> settings = new PoolSettings<>(new MyPoolableObject(ttlMillis));
+      PoolSettings<MyFuriousObject> settings = new PoolSettings<>(new MyPoolableObject());
       settings.min(0).max(poolSize);
       pool = settings.pool();
     }
@@ -158,7 +161,7 @@ public abstract class ClaimRelease
       config.setBlockWhenExhausted(true);
       config.setTestOnBorrow(true);
       pool = new org.apache.commons.pool2.impl.GenericObjectPool<>(
-          new MyPooledObjectFactory(ttlMillis), config);
+          new MyPooledObjectFactory(), config);
     }
 
     @Override

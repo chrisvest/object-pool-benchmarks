@@ -20,13 +20,4 @@
 package objectpoolbenchmark.suite.furious;
 
 public class MyFuriousObject {
-  private final long goodUntilDeadlineMillis;
-
-  public MyFuriousObject(long ttlMillis) {
-    this.goodUntilDeadlineMillis = System.currentTimeMillis() + ttlMillis;
-  }
-
-  public boolean isValid() {
-    return System.currentTimeMillis() <= goodUntilDeadlineMillis;
-  }
 }

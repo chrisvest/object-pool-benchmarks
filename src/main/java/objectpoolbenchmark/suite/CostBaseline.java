@@ -17,31 +17,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package objectpoolbenchmark.suite.furious;
+package objectpoolbenchmark.suite;
 
-import nf.fr.eraasoft.pool.PoolException;
-import nf.fr.eraasoft.pool.PoolableObjectBase;
-import objectpoolbenchmark.suite.Costs;
+import org.openjdk.jmh.annotations.GenerateMicroBenchmark;
 
-public class MyPoolableObject extends PoolableObjectBase<MyFuriousObject> {
-  @Override
-  public MyFuriousObject make() throws PoolException {
+public class CostBaseline {
+  @GenerateMicroBenchmark
+  public void allocationCostBaseline() {
     Costs.expendAllocation();
-    return new MyFuriousObject();
   }
 
-  @Override
-  public void activate(MyFuriousObject obj) throws PoolException {
-  }
-
-  @Override
-  public boolean validate(MyFuriousObject obj) {
-    Costs.expendValidation();
-    return true;
-  }
-
-  @Override
-  public void destroy(MyFuriousObject myFuriousObject) {
+  @GenerateMicroBenchmark
+  public void deallocationCostBaseline() {
     Costs.expendDeallocation();
+  }
+
+  @GenerateMicroBenchmark
+  public void validationCostBaseline() {
+    Costs.expendValidation();
   }
 }

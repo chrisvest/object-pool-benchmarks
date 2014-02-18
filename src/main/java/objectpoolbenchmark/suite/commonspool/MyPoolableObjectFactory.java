@@ -19,16 +19,24 @@
  */
 package objectpoolbenchmark.suite.commonspool;
 
+import objectpoolbenchmark.suite.Costs;
 import org.apache.commons.pool.BasePoolableObjectFactory;
 
 public class MyPoolableObjectFactory extends BasePoolableObjectFactory<MyCommonsObject> {
   @Override
   public MyCommonsObject makeObject() throws Exception {
+    Costs.expendAllocation();
     return new MyCommonsObject();
   }
 
   @Override
   public boolean validateObject(MyCommonsObject obj) {
-    return super.validateObject(obj);
+    Costs.expendValidation();
+    return true;
+  }
+
+  @Override
+  public void destroyObject(MyCommonsObject obj) throws Exception {
+    Costs.expendDeallocation();
   }
 }

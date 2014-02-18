@@ -19,16 +19,19 @@
  */
 package objectpoolbenchmark.suite.stormpot;
 
+import objectpoolbenchmark.suite.Costs;
 import stormpot.Allocator;
 import stormpot.Slot;
 
 public class GenericAllocator implements Allocator<GenericPoolable> {
   @Override
   public GenericPoolable allocate(Slot slot) throws Exception {
+    Costs.expendAllocation();
     return new GenericPoolable(slot);
   }
 
   @Override
   public void deallocate(GenericPoolable genericPoolable) throws Exception {
+    Costs.expendDeallocation();
   }
 }

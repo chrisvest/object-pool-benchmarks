@@ -19,18 +19,19 @@
  */
 package objectpoolbenchmark.suite;
 
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.logic.results.RunResult;
 import org.openjdk.jmh.output.format.OutputFormat;
 import org.openjdk.jmh.output.format.TextReportFormat;
+import org.openjdk.jmh.output.results.JSONResultFormat;
 import org.openjdk.jmh.runner.BenchmarkRecord;
 import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.VerboseMode;
 
@@ -63,9 +64,9 @@ public class FullSuite {
     }
   };
 
-  private static void runFullSuite() throws RunnerException {
+  private static void runFullSuite() throws Exception {
     OptionsBuilder parentOptions = new OptionsBuilder();
-    parentOptions.include(".*ClaimRelease.*");
+    parentOptions.include(".*(ClaimRelease|CostBaseline).*");
 
     // speed it all up for testing purpose:
     parentOptions.forks(1);
@@ -108,7 +109,29 @@ public class FullSuite {
     report(results);
   }
 
-  private static void report(SortedMap<Record, SortedMap<BenchmarkRecord, RunResult>> results) {
+  private static void report(
+      SortedMap<Record, SortedMap<BenchmarkRecord, RunResult>> results) throws IOException {
+    Properties sysprops = System.getProperties();
+    File resultsDir = new File("results");
+    File ourResultsDir = new File(resultsDir,
+        String.format("%1$tY-%1$tm-%1$td_%2$s-%3$s-%4$score",
+            new Date(),
+            sysprops.getProperty("os.name").replace(' ', '_'),
+            sysprops.getProperty("os.arch"),
+            Runtime.getRuntime().availableProcessors()));
+    if (!ourResultsDir.mkdirs()) {
+      System.err.println(
+          "WARN: Will print results to console because directory could not " +
+          "be created: " + ourResultsDir.getAbsolutePath());
+
+      reportToConsole(results);
+    } else {
+      reportToDirectory(results, ourResultsDir, sysprops);
+    }
+  }
+
+  private static void reportToConsole(
+      SortedMap<Record, SortedMap<BenchmarkRecord, RunResult>> results) {
     OutputFormat format = new TextReportFormat(System.out, VerboseMode.EXTRA);
     for (Map.Entry<Record, SortedMap<BenchmarkRecord, RunResult>> entry : results.entrySet()) {
       Record record = entry.getKey();
@@ -116,6 +139,29 @@ public class FullSuite {
       System.out.printf("[ Threads: %s, Pool Size: %s, Claim Batch Size: %s, Modus: %s ]%n",
           record.threadCount, record.poolSize, record.claimBatchSize, record.modus);
       format.endRun(result);
+    }
+  }
+
+  private static void reportToDirectory(
+      SortedMap<Record, SortedMap<BenchmarkRecord, RunResult>> results,
+      File ourResultsDir,
+      Properties sysprops) throws IOException {
+    File systemproperties = new File(ourResultsDir, "system.properties");
+    if (systemproperties.createNewFile()) {
+      sysprops.store(
+          new FileWriter(systemproperties),
+          " JVM system properties for the fullsuite benchmark");
+    } else {
+      System.err.println(
+          "ERROR: Could not create file: " + systemproperties.getAbsolutePath());
+    }
+
+    for (Map.Entry<Record, SortedMap<BenchmarkRecord, RunResult>> entry : results.entrySet()) {
+      Record record = entry.getKey();
+      SortedMap<BenchmarkRecord, RunResult> result = entry.getValue();
+      File resultFile = new File(ourResultsDir, record.toFilename());
+      JSONResultFormat format = new JSONResultFormat(resultFile.getAbsolutePath());
+      format.writeOut(result);
     }
   }
 
@@ -179,6 +225,11 @@ public class FullSuite {
       result = 31 * result + claimBatchSize;
       result = 31 * result + modus.hashCode();
       return result;
+    }
+
+    public String toFilename() {
+      return String.format("threads=%02d_poolSize=%04d_claimBatchSize=%d_%s",
+          threadCount, poolSize, claimBatchSize, modus);
     }
   }
 }

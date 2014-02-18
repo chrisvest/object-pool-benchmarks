@@ -66,7 +66,8 @@ public class FullSuite {
 
   private static void runFullSuite() throws Exception {
     OptionsBuilder parentOptions = new OptionsBuilder();
-    parentOptions.include(".*(ClaimRelease|CostBaseline).*");
+    // fullsuite doesn't play with the cost functions, so only do ClaimRelease:
+    parentOptions.include(".*ClaimRelease.*");
 
     // speed it all up for testing purpose:
     parentOptions.forks(1);
@@ -119,14 +120,15 @@ public class FullSuite {
             sysprops.getProperty("os.name").replace(' ', '_'),
             sysprops.getProperty("os.arch"),
             Runtime.getRuntime().availableProcessors()));
-    if (!ourResultsDir.mkdirs()) {
+
+    if (ourResultsDir.exists() && ourResultsDir.isDirectory() || ourResultsDir.mkdirs()) {
+      reportToDirectory(results, ourResultsDir, sysprops);
+    } else {
       System.err.println(
           "WARN: Will print results to console because directory could not " +
-          "be created: " + ourResultsDir.getAbsolutePath());
+              "be created: " + ourResultsDir.getAbsolutePath());
 
       reportToConsole(results);
-    } else {
-      reportToDirectory(results, ourResultsDir, sysprops);
     }
   }
 
@@ -147,14 +149,20 @@ public class FullSuite {
       File ourResultsDir,
       Properties sysprops) throws IOException {
     File systemproperties = new File(ourResultsDir, "system.properties");
-    if (systemproperties.createNewFile()) {
-      sysprops.store(
-          new FileWriter(systemproperties),
-          " JVM system properties for the fullsuite benchmark");
-    } else {
+
+    if (!systemproperties.createNewFile()) {
       System.err.println(
-          "ERROR: Could not create file: " + systemproperties.getAbsolutePath());
+          "ERROR: Could not create new file: " + systemproperties.getAbsolutePath());
+      System.out.println("# Overwrite existing data? [y/N] ");
+      if (System.in.read() != 'y') {
+        return;
+      }
+      System.out.println("# Okay, overwriting.");
     }
+
+    sysprops.store(
+        new FileWriter(systemproperties),
+        " JVM system properties for the fullsuite benchmark");
 
     for (Map.Entry<Record, SortedMap<BenchmarkRecord, RunResult>> entry : results.entrySet()) {
       Record record = entry.getKey();
@@ -163,6 +171,7 @@ public class FullSuite {
       JSONResultFormat format = new JSONResultFormat(resultFile.getAbsolutePath());
       format.writeOut(result);
     }
+    System.out.println("# done");
   }
 
   private static abstract class Modus {
@@ -196,12 +205,12 @@ public class FullSuite {
     @Override
     public int compareTo(Record that) {
       return threadCount < that.threadCount? -1
-          : threadCount > that.threadCount? 1
-          : poolSize < that.poolSize? -1
-          : poolSize > that.poolSize? 1
-          : claimBatchSize < that.claimBatchSize? -1
-          : claimBatchSize > that.claimBatchSize? 1
-          : modus.name.compareTo(that.modus.name);
+           : threadCount > that.threadCount? 1
+           : poolSize < that.poolSize? -1
+           : poolSize > that.poolSize? 1
+           : claimBatchSize < that.claimBatchSize? -1
+           : claimBatchSize > that.claimBatchSize? 1
+           : modus.name.compareTo(that.modus.name);
     }
 
     @Override

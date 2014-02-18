@@ -27,7 +27,7 @@ import org.openjdk.jol.util.VMSupport;
 
 public class BSlotObjectLayout {
   public static void main(String[] args) throws Exception {
-    Class<?> bslotClass = Class.forName("stormpot.bpool.BSlot");
+    Class<?> bslotClass = Class.forName("stormpot.BSlot");
     Constructor<?> slotConstructor = bslotClass.getConstructor(BlockingQueue.class);
     slotConstructor.setAccessible(true);
     Object bslot = slotConstructor.newInstance(new Object[]{null});

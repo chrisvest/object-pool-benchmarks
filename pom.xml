@@ -8,6 +8,7 @@
   <packaging>jar</packaging>
   <name>objectpoolbenchmarks</name>
   <description>Benchmarks code for various object pool libraries.</description>
+  <inceptionYear>2014</inceptionYear>
 
   <dependencies>
     <dependency>
@@ -78,6 +79,32 @@
           <downloadJavadocs>true</downloadJavadocs>
           <useProjectReferences>true</useProjectReferences>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
+          <properties>
+            <owner>Chris Vest</owner>
+            <year>${project.inceptionYear}</year>
+            <email>mr.chrisvest@gmail.com</email>
+          </properties>
+          <mapping>
+            <java>SLASHSTAR_STYLE</java>
+          </mapping>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

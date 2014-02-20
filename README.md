@@ -15,7 +15,7 @@ Run individual benchmarks like this:
 
 For instance, running a single-threaded claim-release throughput benchmark could look like this:
 
-    java -jar target/object-pool-benchmarks.jar ".*ClaimRelease.*" -t 1 -i 6 -wi 6 -f 1 -tu s -bm thrpt
+    java -jar target/object-pool-benchmarks.jar ".*ClaimRelease.*" -t 1 -i 6 -wi 6 -f 1 -tu ms -bm thrpt
 
 Set pool-size by specifying `-jvmArgs -Dpool.size=10`.
 

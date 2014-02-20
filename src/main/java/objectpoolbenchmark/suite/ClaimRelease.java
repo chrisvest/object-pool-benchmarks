@@ -70,6 +70,26 @@ public abstract class ClaimRelease
   }
 
 
+  public static class Baseline extends ClaimRelease {
+    @Override
+    public void preparePool() throws Exception {
+    }
+
+    @Override
+    public void tearDownPool() throws Exception {
+    }
+
+    @Override
+    public Object claim() throws Exception {
+      Costs.expendValidation();
+      return null;
+    }
+
+    @Override
+    public void release(Object obj) throws Exception {
+    }
+  }
+
   public abstract static class Stormpot extends ClaimRelease {
     private final Timeout timeout = new Timeout(10, TimeUnit.SECONDS);
     private LifecycledPool<GenericPoolable> pool;

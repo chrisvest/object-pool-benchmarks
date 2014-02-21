@@ -50,6 +50,12 @@ public class BlazePoolBenchmark {
   }
 
   @GenerateMicroBenchmark
+  public void AtomicInteger_compareAndSetAndSet(BlackHole blackHole) {
+    blackHole.consume(atomicInteger.compareAndSet(0, 1));
+    atomicInteger.set(0);
+  }
+
+  @GenerateMicroBenchmark
   public void AtomicInteger_compareAndSetAndWeakCompareAndSet(BlackHole blackHole) {
     blackHole.consume(atomicInteger.compareAndSet(0, 1) && atomicInteger.weakCompareAndSet(1, 0));
   }

@@ -19,10 +19,6 @@ import java.util.concurrent.TimeUnit;
 
 import nf.fr.eraasoft.pool.PoolSettings;
 import nf.fr.eraasoft.pool.impl.PoolControler;
-import org.apache.commons.pool.impl.GenericObjectPool;
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.openjdk.jmh.annotations.*;
-import stormpot.*;
 import objectpoolbenchmark.suite.commonspool.MyCommonsObject;
 import objectpoolbenchmark.suite.commonspool.MyPoolableObjectFactory;
 import objectpoolbenchmark.suite.commonspool2.MyCommons2Object;
@@ -31,6 +27,10 @@ import objectpoolbenchmark.suite.furious.MyFuriousObject;
 import objectpoolbenchmark.suite.furious.MyPoolableObject;
 import objectpoolbenchmark.suite.stormpot.GenericAllocator;
 import objectpoolbenchmark.suite.stormpot.GenericPoolable;
+import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.openjdk.jmh.annotations.*;
+import stormpot.*;
 import stormpot.bpool.BlazePool;
 import stormpot.qpool.QueuePool;
 

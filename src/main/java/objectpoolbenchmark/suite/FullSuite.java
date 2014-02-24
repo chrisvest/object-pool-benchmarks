@@ -25,7 +25,9 @@ import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.logic.results.RunResult;
 import org.openjdk.jmh.output.format.OutputFormat;
 import org.openjdk.jmh.output.format.TextReportFormat;
-import org.openjdk.jmh.output.results.JSONResultFormat;
+import org.openjdk.jmh.output.results.ResultFormat;
+import org.openjdk.jmh.output.results.ResultFormatFactory;
+import org.openjdk.jmh.output.results.ResultFormatType;
 import org.openjdk.jmh.runner.BenchmarkRecord;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
@@ -164,7 +166,7 @@ public class FullSuite {
       Record record = entry.getKey();
       SortedMap<BenchmarkRecord, RunResult> result = entry.getValue();
       File resultFile = new File(ourResultsDir, record.toFilename());
-      JSONResultFormat format = new JSONResultFormat(resultFile.getAbsolutePath());
+      ResultFormat format = ResultFormatFactory.getInstance(ResultFormatType.JSON, resultFile.getAbsolutePath());
       format.writeOut(result);
     }
     System.out.println("# done");

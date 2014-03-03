@@ -27,9 +27,12 @@ import objectpoolbenchmark.suite.furious.MyFuriousObject;
 import objectpoolbenchmark.suite.furious.MyPoolableObject;
 import objectpoolbenchmark.suite.stormpot.GenericAllocator;
 import objectpoolbenchmark.suite.stormpot.GenericPoolable;
+import objectpoolbenchmark.suite.vibur.MyViburObject;
+import objectpoolbenchmark.suite.vibur.ViburObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.openjdk.jmh.annotations.*;
+import org.vibur.objectpool.Holder;
 import stormpot.*;
 import stormpot.bpool.BlazePool;
 import stormpot.qpool.QueuePool;
@@ -242,6 +245,31 @@ public abstract class ClaimRelease
       pool = new org.apache.commons.pool.impl.StackObjectPool<>(
           new MyPoolableObjectFactory(),
           poolSize);
+    }
+  }
+
+  public static class ViburObjectPool extends ClaimRelease {
+    private org.vibur.objectpool.ConcurrentHolderLinkedPool<MyViburObject> pool;
+
+    @Override
+    public void preparePool() throws Exception {
+      ViburObjectFactory factory = new ViburObjectFactory();
+      pool = new org.vibur.objectpool.ConcurrentHolderLinkedPool<>(factory, poolSize, poolSize, false);
+    }
+
+    @Override
+    public void tearDownPool() throws Exception {
+      pool.terminate();
+    }
+
+    @Override
+    public Object claim() throws Exception {
+      return pool.take();
+    }
+
+    @Override
+    public void release(Object obj) throws Exception {
+      pool.restore((Holder<MyViburObject>) obj);
     }
   }
 }

@@ -5,7 +5,7 @@ Build the benchmarks like this:
 
 Run the full benchmark suite (note that this will take a while) like this:
 
-    java -jar target/object-pool-benchmarks.jar fullsuite
+    ./fullsuite.sh
 
 The results of the fullsuite benchmark will be put in a new subdirectory of `results`.
 
@@ -18,8 +18,6 @@ For instance, running a single-threaded claim-release throughput benchmark could
     java -jar target/object-pool-benchmarks.jar ".*ClaimRelease.*" -t 1 -i 6 -wi 6 -f 1 -tu ms -bm thrpt
 
 Set pool-size by specifying `-jvmArgs -Dpool.size=10`.
-
-Set the number of objects that each benchmark "operation" shall claim by specifying `-jvmArgs -Dcycle.claim.count=1`.
 
 Likewise set the `cost.of.allocation`, `cost.of.deallocation` and `cost.of.validation` objects.
 

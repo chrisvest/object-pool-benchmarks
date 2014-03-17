@@ -40,12 +40,12 @@
     <dependency>
       <groupId>org.openjdk.jmh</groupId>
       <artifactId>jmh-core</artifactId>
-      <version>0.5.4</version>
+      <version>${jmh.version}</version>
     </dependency>
     <dependency>
       <groupId>org.openjdk.jmh</groupId>
       <artifactId>jmh-generator-annprocess</artifactId>
-      <version>0.5.4</version>
+      <version>${jmh.version}</version>
     </dependency>
     <dependency>
       <groupId>org.openjdk.jol</groupId>
@@ -127,6 +127,7 @@
   <properties>
     <java.version>1.7</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <jmh.version>1.0-SNAPSHOT</jmh.version>
   </properties>
 </project>
 

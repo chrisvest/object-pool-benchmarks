@@ -50,8 +50,14 @@
     <dependency>
       <groupId>org.openjdk.jol</groupId>
       <artifactId>jol-core</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>LATEST</version>
     </dependency>
+      <dependency>
+          <groupId>com.zaxxer</groupId>
+          <artifactId>HikariCP</artifactId>
+          <version>1.3.5</version>
+          <scope>compile</scope>
+      </dependency>
   </dependencies>
 
   <build>
@@ -127,7 +133,7 @@
   <properties>
     <java.version>1.7</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <jmh.version>1.0-SNAPSHOT</jmh.version>
+    <jmh.version>LATEST</jmh.version>
   </properties>
 </project>
 

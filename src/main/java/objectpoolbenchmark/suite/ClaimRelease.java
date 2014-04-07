@@ -16,7 +16,9 @@
 package objectpoolbenchmark.suite;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import com.zaxxer.hikari.util.ConcurrentBag;
 import nf.fr.eraasoft.pool.PoolSettings;
 import nf.fr.eraasoft.pool.impl.PoolControler;
 import objectpoolbenchmark.suite.commonspool.MyCommonsObject;
@@ -33,6 +35,7 @@ import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.openjdk.jmh.annotations.*;
 import org.vibur.objectpool.Holder;
+import ru.narod.dimzon541.utils.pooling.EasyPool;
 import stormpot.*;
 import stormpot.bpool.BlazePool;
 import stormpot.qpool.QueuePool;
@@ -252,4 +255,78 @@ public abstract class ClaimRelease
       pool.restore((Holder<MyViburObject>) obj);
     }
   }
+
+    public static class EasyPoolTest extends ClaimRelease {
+        EasyPool<Object> easyPool;
+        @Override
+        public void preparePool() throws Exception {
+            easyPool = new EasyPool<>(poolSize);
+        }
+
+        @Override
+        public void tearDownPool() throws Exception {
+
+        }
+
+        @Override
+        public Object claim() throws Exception {
+            EasyPool<Object>.PoolSocket socket = easyPool.getSocket();
+            Object value = socket.getObject();
+            if(value==null){
+                value = new Object();
+                socket.setObject(value);
+                Costs.expendAllocation();
+            }  else {
+                Costs.expendValidation();
+            }
+            return socket;
+        }
+
+        @Override
+        public void release(Object obj) throws Exception {
+            ((AutoCloseable)obj).close();
+        }
+    }
+
+    public static class ConcurrentBag1 extends ClaimRelease {
+        ConcurrentBag<ConcurrentBag.IBagManagable> bag;
+
+        @Override
+        public void preparePool() throws Exception {
+            bag = new ConcurrentBag<>();
+            for (int i = 0; i < poolSize; i++) {
+                Costs.expendAllocation();
+                bag.add(new ConcurrentBag.IBagManagable() {
+                    final AtomicInteger state=new AtomicInteger(ConcurrentBag.STATE_NOT_IN_USE);
+                    @Override
+                    public int getState() {
+                        return state.get();
+                    }
+
+                    @Override
+                    public boolean compareAndSetState(int i, int i2) {
+                        return  state.compareAndSet(i,i2);
+                    }
+                });
+            }
+        }
+
+        @Override
+        public void tearDownPool() throws Exception {
+
+        }
+
+        @Override
+        public Object claim() throws Exception {
+            final ConcurrentBag.IBagManagable borrow = bag.borrow(1, TimeUnit.DAYS);
+            Costs.expendValidation();
+            return borrow;
+        }
+
+        @Override
+        public void release(Object obj) throws Exception {
+            bag.requite((ConcurrentBag.IBagManagable) obj);
+        }
+    }
+
 }

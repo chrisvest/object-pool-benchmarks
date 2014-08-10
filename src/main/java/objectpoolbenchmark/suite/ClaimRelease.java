@@ -59,7 +59,7 @@ public abstract class ClaimRelease
   public abstract void release(Object obj) throws Exception;
 
 
-  @GenerateMicroBenchmark
+  @Benchmark
   public void cycle() throws Exception {
     int claimsLeft = objsToClaim;
     claimRelease(claimsLeft);

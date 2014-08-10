@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import objectpoolbenchmark.suite.stormpot.GenericAllocator;
 import objectpoolbenchmark.suite.stormpot.GenericPoolable;
 import org.openjdk.jmh.annotations.*;
-import org.openjdk.jmh.logic.BlackHole;
+import org.openjdk.jmh.infra.Blackhole;
 import stormpot.Config;
 import stormpot.Expiration;
 import stormpot.SlotInfo;
@@ -38,53 +38,53 @@ public class BlazePoolBenchmark {
   private ThreadLocal<Object> threadLocal;
 
 
-  @GenerateMicroBenchmark
-  public void AtomicInteger_compareAndSet(BlackHole blackHole) {
-    blackHole.consume(atomicInteger.compareAndSet(0, 1) && atomicInteger.compareAndSet(1, 0));
+  @Benchmark
+  public void AtomicInteger_compareAndSet(Blackhole blackhole) {
+    blackhole.consume(atomicInteger.compareAndSet(0, 1) && atomicInteger.compareAndSet(1, 0));
   }
 
-  @GenerateMicroBenchmark
-  public void AtomicInteger_compareAndSetAndLazySet(BlackHole blackHole) {
-    blackHole.consume(atomicInteger.compareAndSet(0, 1));
+  @Benchmark
+  public void AtomicInteger_compareAndSetAndLazySet(Blackhole blackhole) {
+    blackhole.consume(atomicInteger.compareAndSet(0, 1));
     atomicInteger.lazySet(0);
   }
 
-  @GenerateMicroBenchmark
-  public void AtomicInteger_compareAndSetAndSet(BlackHole blackHole) {
-    blackHole.consume(atomicInteger.compareAndSet(0, 1));
+  @Benchmark
+  public void AtomicInteger_compareAndSetAndSet(Blackhole blackhole) {
+    blackhole.consume(atomicInteger.compareAndSet(0, 1));
     atomicInteger.set(0);
   }
 
-  @GenerateMicroBenchmark
-  public void AtomicInteger_compareAndSetAndWeakCompareAndSet(BlackHole blackHole) {
-    blackHole.consume(atomicInteger.compareAndSet(0, 1) && atomicInteger.weakCompareAndSet(1, 0));
+  @Benchmark
+  public void AtomicInteger_compareAndSetAndWeakCompareAndSet(Blackhole blackhole) {
+    blackhole.consume(atomicInteger.compareAndSet(0, 1) && atomicInteger.weakCompareAndSet(1, 0));
   }
 
-  @GenerateMicroBenchmark
-  public void AtomicInteger_weakCompareAndSetAndWeakCompareAndSet(BlackHole blackHole) {
-    blackHole.consume(atomicInteger.weakCompareAndSet(0, 1) && atomicInteger.weakCompareAndSet(1, 0));
+  @Benchmark
+  public void AtomicInteger_weakCompareAndSetAndWeakCompareAndSet(Blackhole blackhole) {
+    blackhole.consume(atomicInteger.weakCompareAndSet(0, 1) && atomicInteger.weakCompareAndSet(1, 0));
   }
 
-  @GenerateMicroBenchmark
-  public void AtomicInteger_weakCompareAndSetAndLazySet(BlackHole blackHole) {
-    blackHole.consume(atomicInteger.weakCompareAndSet(0, 1));
+  @Benchmark
+  public void AtomicInteger_weakCompareAndSetAndLazySet(Blackhole blackhole) {
+    blackhole.consume(atomicInteger.weakCompareAndSet(0, 1));
     atomicInteger.lazySet(0);
   }
 
-  @GenerateMicroBenchmark
+  @Benchmark
   public Object ThreadLocal_get() {
     return threadLocal.get();
   }
 
-  @GenerateMicroBenchmark
+  @Benchmark
   public void BlazePool_claimRelease() throws InterruptedException {
     pool.claim(timeout).release();
   }
 
-  @GenerateMicroBenchmark
-  public void BlazePool_claimRelease_withBH(BlackHole blackHole) throws InterruptedException {
+  @Benchmark
+  public void BlazePool_claimRelease_withBH(Blackhole blackhole) throws InterruptedException {
     GenericPoolable obj = pool.claim(timeout);
-    blackHole.consume(obj);
+    blackhole.consume(obj);
     obj.release();
   }
 

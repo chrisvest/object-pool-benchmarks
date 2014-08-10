@@ -15,20 +15,20 @@
  */
 package objectpoolbenchmark.suite;
 
-import org.openjdk.jmh.annotations.GenerateMicroBenchmark;
+import org.openjdk.jmh.annotations.Benchmark;
 
 public class CostBaseline {
-  @GenerateMicroBenchmark
+  @Benchmark
   public void allocationCostBaseline() {
     Costs.expendAllocation();
   }
 
-  @GenerateMicroBenchmark
+  @Benchmark
   public void deallocationCostBaseline() {
     Costs.expendDeallocation();
   }
 
-  @GenerateMicroBenchmark
+  @Benchmark
   public void validationCostBaseline() {
     Costs.expendValidation();
   }

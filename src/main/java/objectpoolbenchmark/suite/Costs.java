@@ -18,7 +18,7 @@ package objectpoolbenchmark.suite;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.openjdk.jmh.logic.BlackHole;
+import org.openjdk.jmh.infra.Blackhole;
 
 public class Costs {
   private static final long allocationCost;
@@ -112,7 +112,7 @@ public class Costs {
     CPU {
       @Override
       public void spend(long units) {
-        BlackHole.consumeCPU(units);
+        Blackhole.consumeCPU(units);
       }
     },
     SLEEP {

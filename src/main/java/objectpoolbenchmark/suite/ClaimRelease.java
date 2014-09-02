@@ -43,8 +43,8 @@ import stormpot.qpool.QueuePool;
 @State(Scope.Benchmark)
 public abstract class ClaimRelease
 {
-  protected static final int poolSize = Integer.getInteger("pool.size", 10);
-  protected static final int objsToClaim = Integer.getInteger("cycle.claim.count", 1);
+  @Param({"10"})
+  public int poolSize;
 
   @Setup
   public abstract void preparePool() throws Exception;
@@ -61,7 +61,7 @@ public abstract class ClaimRelease
 
   @Benchmark
   public void cycle() throws Exception {
-    int claimsLeft = objsToClaim;
+    int claimsLeft = 1;
     claimRelease(claimsLeft);
   }
 
@@ -74,7 +74,6 @@ public abstract class ClaimRelease
     claimRelease(claimsLeft - 1);
     release(obj);
   }
-
 
   public abstract static class Stormpot extends ClaimRelease {
     private final Timeout timeout = new Timeout(10, TimeUnit.SECONDS);

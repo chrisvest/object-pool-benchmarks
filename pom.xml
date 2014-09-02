@@ -81,7 +81,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <finalName>object-pool-benchmarks</finalName>
+              <finalName>benchmarks</finalName>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>org.openjdk.jmh.Main</mainClass>
@@ -133,6 +133,6 @@
   <properties>
     <java.version>1.7</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <jmh.version>0.9.5</jmh.version>
+    <jmh.version>1.0</jmh.version>
   </properties>
 </project>

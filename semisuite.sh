@@ -20,5 +20,5 @@ mvn clean package
 for THREADS in ${THREAD_COUNTS[@]}
 do
   echo "Benchmarking with $THREADS worker threads"
-  java -jar target/object-pool-benchmarks.jar '.*Stormpot.*' -tu us -rf json -f $FORKS -i $ITERS -wi $WITERS -t $THREADS -jvmArgs "-Dpool.size=$POOL_SIZE" -bm thrpt -rff "${DIR}/${THREADS}-threads-thrpt.json"
+  java -jar target/benchmarks.jar '.*Stormpot.*' -tu us -rf json -f $FORKS -i $ITERS -wi $WITERS -t $THREADS -p poolSize=$POOL_SIZE -bm thrpt -rff "${DIR}/${THREADS}-threads-thrpt.json"
 done

@@ -20,11 +20,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import objectpoolbenchmark.suite.stormpot.GenericAllocator;
 import objectpoolbenchmark.suite.stormpot.GenericPoolable;
+import objectpoolbenchmark.suite.stormpot.GenericPoolableExpiration;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import stormpot.Config;
-import stormpot.Expiration;
-import stormpot.SlotInfo;
 import stormpot.Timeout;
 import stormpot.bpool.BlazePool;
 
@@ -92,12 +91,7 @@ public class BlazePoolBenchmark {
   @Setup
   public void createPool() throws InterruptedException {
     Config<GenericPoolable> config = new Config<>().setAllocator(new GenericAllocator());
-    config.setExpiration(new Expiration<GenericPoolable>() {
-      @Override
-      public boolean hasExpired(SlotInfo<? extends GenericPoolable> slotInfo) {
-        return false;
-      }
-    });
+    config.setExpiration(new GenericPoolableExpiration());
     pool = new BlazePool<>(config);
     pool.claim(timeout).release();
     atomicInteger = new AtomicInteger();

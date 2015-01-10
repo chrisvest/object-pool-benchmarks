@@ -29,6 +29,7 @@ import objectpoolbenchmark.suite.furious.MyFuriousObject;
 import objectpoolbenchmark.suite.furious.MyPoolableObject;
 import objectpoolbenchmark.suite.stormpot.GenericAllocator;
 import objectpoolbenchmark.suite.stormpot.GenericPoolable;
+import objectpoolbenchmark.suite.stormpot.GenericPoolableExpiration;
 import objectpoolbenchmark.suite.vibur.MyViburObject;
 import objectpoolbenchmark.suite.vibur.ViburObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
@@ -37,6 +38,7 @@ import org.openjdk.jmh.annotations.*;
 import org.vibur.objectpool.Holder;
 import ru.narod.dimzon541.utils.pooling.EasyPool;
 import stormpot.*;
+import stormpot.Timeout;
 import stormpot.bpool.BlazePool;
 import stormpot.qpool.QueuePool;
 
@@ -61,17 +63,7 @@ public abstract class ClaimRelease
 
   @Benchmark
   public void cycle() throws Exception {
-    int claimsLeft = 1;
-    claimRelease(claimsLeft);
-  }
-
-  @CompilerControl(CompilerControl.Mode.INLINE)
-  private void claimRelease(int claimsLeft) throws Exception {
-    if (claimsLeft == 0) {
-      return;
-    }
     Object obj = claim();
-    claimRelease(claimsLeft - 1);
     release(obj);
   }
 
@@ -83,13 +75,7 @@ public abstract class ClaimRelease
     public void preparePool() {
       Config<GenericPoolable> config = new Config<>().setAllocator(new GenericAllocator());
       config.setSize(poolSize);
-      Expiration<GenericPoolable> expiration = new Expiration<GenericPoolable>() {
-        @Override
-        public boolean hasExpired(SlotInfo<? extends GenericPoolable> info) {
-          Costs.expendValidation();
-          return false;
-        }
-      };
+      Expiration<GenericPoolable> expiration = new GenericPoolableExpiration();
       config.setExpiration(expiration);
       pool = buildPool(config);
     }
@@ -110,6 +96,7 @@ public abstract class ClaimRelease
     public void release(Object obj) {
       ((GenericPoolable)obj).release();
     }
+
   }
 
   public static class StormpotBlazePool extends Stormpot {

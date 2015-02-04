@@ -15,6 +15,7 @@
  */
 package objectpoolbenchmark.specific.stormpot;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -22,7 +23,9 @@ import objectpoolbenchmark.suite.stormpot.GenericAllocator;
 import objectpoolbenchmark.suite.stormpot.GenericPoolable;
 import objectpoolbenchmark.suite.stormpot.GenericPoolableExpiration;
 import org.openjdk.jmh.annotations.*;
-import stormpot.*;
+import stormpot.BlazePool;
+import stormpot.Config;
+import stormpot.LifecycledPool;
 import stormpot.Timeout;
 
 
@@ -33,9 +36,15 @@ import stormpot.Timeout;
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @State(Scope.Benchmark)
 public class Simulation {
-  private final Timeout timeout = new Timeout(10, TimeUnit.SECONDS);
+  private static final Timeout timeout = new Timeout(10, TimeUnit.SECONDS);
   private ThreadLocal<AtomicLong> tlr;
   private LifecycledPool<GenericPoolable> pool;
+  private Callable<Object> objectCreator = new Callable<Object>() {
+    @Override
+    public Object call() throws Exception {
+      return new Object();
+    }
+  };
 
   @Setup
   public void setUp() {
@@ -67,14 +76,25 @@ public class Simulation {
   }
 
   @Benchmark
-  public Object newObject(Simulation sim) {
-    return new Object();
+  public Object newObject(Simulation sim) throws Exception {
+    return sim.objectCreator.call();
   }
 
   @Benchmark
-  public Object claimRelease(Simulation sim) throws InterruptedException {
+  public Object claimReleaseWithReturn(Simulation sim) throws InterruptedException {
     GenericPoolable obj = sim.pool.claim(timeout);
     obj.release();
     return obj;
+  }
+
+  @Benchmark
+  public void claimReleaseWithoutReturn(Simulation sim) throws InterruptedException {
+    GenericPoolable obj = sim.pool.claim(timeout);
+    obj.release();
+  }
+
+  @Benchmark
+  public Object returnSim(Simulation sim) {
+    return sim;
   }
 }

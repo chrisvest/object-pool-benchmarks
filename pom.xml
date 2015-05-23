@@ -13,7 +13,7 @@
   <properties>
     <java.version>1.7</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <jmh.version>1.5.1</jmh.version>
+    <jmh.version>1.9.3</jmh.version>
   </properties>
 
   <dependencies>

@@ -15,6 +15,7 @@
  */
 package objectpoolbenchmark.suite;
 
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,9 +36,10 @@ import objectpoolbenchmark.suite.vibur.ViburObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.openjdk.jmh.annotations.*;
-import org.vibur.objectpool.Holder;
 import ru.narod.dimzon541.utils.pooling.EasyPool;
-import stormpot.*;
+import stormpot.Config;
+import stormpot.Expiration;
+import stormpot.LifecycledPool;
 import stormpot.Timeout;
 import stormpot.bpool.BlazePool;
 import stormpot.qpool.QueuePool;
@@ -218,12 +220,12 @@ public abstract class ClaimRelease
   }
 
   public static class ViburObjectPool extends ClaimRelease {
-    private org.vibur.objectpool.ConcurrentHolderLinkedPool<MyViburObject> pool;
+    private org.vibur.objectpool.ConcurrentLinkedPool<MyViburObject> pool;
 
     @Override
     public void preparePool() throws Exception {
       ViburObjectFactory factory = new ViburObjectFactory();
-      pool = new org.vibur.objectpool.ConcurrentHolderLinkedPool<>(factory, poolSize, poolSize, false);
+      pool = new org.vibur.objectpool.ConcurrentLinkedPool<>(factory, poolSize, poolSize, false);
     }
 
     @Override
@@ -238,7 +240,7 @@ public abstract class ClaimRelease
 
     @Override
     public void release(Object obj) throws Exception {
-      pool.restore((Holder<MyViburObject>) obj);
+      pool.restore((MyViburObject) obj);
     }
   }
 
@@ -276,24 +278,29 @@ public abstract class ClaimRelease
   }
 
   public static class ConcurrentBag1 extends ClaimRelease {
-    ConcurrentBag<ConcurrentBag.IBagManagable> bag;
+    ConcurrentBag<ConcurrentBag.IConcurrentBagEntry> bag;
 
     @Override
     public void preparePool() throws Exception {
-      bag = new ConcurrentBag<>();
+      bag = new ConcurrentBag<>(new ConcurrentBag.IBagStateListener() {
+        @Override
+        public Future<Boolean> addBagItem() {
+          return null;
+        }
+      });
       for (int i = 0; i < poolSize; i++) {
         Costs.expendAllocation();
-        bag.add(new ConcurrentBag.IBagManagable() {
-          final AtomicInteger state = new AtomicInteger(ConcurrentBag.STATE_NOT_IN_USE);
+        bag.add(new ConcurrentBag.IConcurrentBagEntry() {
+          final AtomicInteger state = new AtomicInteger(ConcurrentBag.IConcurrentBagEntry.STATE_NOT_IN_USE);
+
+          @Override
+          public boolean compareAndSet(int from, int to) {
+            return state.compareAndSet(from, to);
+          }
 
           @Override
           public int getState() {
             return state.get();
-          }
-
-          @Override
-          public boolean compareAndSetState(int i, int i2) {
-            return state.compareAndSet(i, i2);
           }
         });
       }
@@ -306,14 +313,14 @@ public abstract class ClaimRelease
 
     @Override
     public Object claim() throws Exception {
-      final ConcurrentBag.IBagManagable borrow = bag.borrow(1, TimeUnit.DAYS);
+      final ConcurrentBag.IConcurrentBagEntry borrow = bag.borrow(1, TimeUnit.DAYS);
       Costs.expendValidation();
       return borrow;
     }
 
     @Override
     public void release(Object obj) throws Exception {
-      bag.requite((ConcurrentBag.IBagManagable) obj);
+      bag.requite((ConcurrentBag.IConcurrentBagEntry) obj);
     }
   }
 }

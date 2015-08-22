@@ -18,3 +18,4 @@ shopping-cart.html
 *.json
 results
 jmh.out
+*.jar

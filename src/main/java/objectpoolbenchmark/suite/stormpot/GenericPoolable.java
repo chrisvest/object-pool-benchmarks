@@ -15,18 +15,12 @@
  */
 package objectpoolbenchmark.suite.stormpot;
 
+import stormpot.BasePoolable;
 import stormpot.Poolable;
 import stormpot.Slot;
 
-public class GenericPoolable implements Poolable {
-  private final Slot slot;
-
+public class GenericPoolable extends BasePoolable {
   public GenericPoolable(Slot slot) {
-    this.slot = slot;
-  }
-
-  @Override
-  public void release() {
-    slot.release(this);
+    super(slot);
   }
 }

@@ -15,10 +15,6 @@
  */
 package objectpoolbenchmark.suite;
 
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.zaxxer.hikari.util.ConcurrentBag;
 import nf.fr.eraasoft.pool.PoolSettings;
 import nf.fr.eraasoft.pool.impl.PoolControler;
@@ -36,13 +32,13 @@ import objectpoolbenchmark.suite.vibur.ViburObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.openjdk.jmh.annotations.*;
+import org.vibur.objectpool.util.ConcurrentLinkedQueueCollection;
 import ru.narod.dimzon541.utils.pooling.EasyPool;
-import stormpot.Config;
-import stormpot.Expiration;
-import stormpot.LifecycledPool;
+import stormpot.Pool;
 import stormpot.Timeout;
-import stormpot.bpool.BlazePool;
-import stormpot.qpool.QueuePool;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @State(Scope.Benchmark)
 public abstract class ClaimRelease
@@ -69,20 +65,14 @@ public abstract class ClaimRelease
     release(obj);
   }
 
-  public abstract static class Stormpot extends ClaimRelease {
+  public static class StormpotBlazePool extends ClaimRelease {
     private final Timeout timeout = new Timeout(10, TimeUnit.SECONDS);
-    private LifecycledPool<GenericPoolable> pool;
+    private Pool<GenericPoolable> pool;
 
     @Override
     public void preparePool() {
-      Config<GenericPoolable> config = new Config<>().setAllocator(new GenericAllocator());
-      config.setSize(poolSize);
-      Expiration<GenericPoolable> expiration = new GenericPoolableExpiration();
-      config.setExpiration(expiration);
-      pool = buildPool(config);
+      pool = Pool.from(new GenericAllocator()).setSize(poolSize).setExpiration(new GenericPoolableExpiration()).build();
     }
-
-    protected abstract LifecycledPool<GenericPoolable> buildPool(Config<GenericPoolable> config);
 
     @Override
     public void tearDownPool() throws InterruptedException {
@@ -98,35 +88,20 @@ public abstract class ClaimRelease
     public void release(Object obj) {
       ((GenericPoolable)obj).release();
     }
-
-  }
-
-  public static class StormpotBlazePool extends Stormpot {
-    @Override
-    protected LifecycledPool<GenericPoolable> buildPool(Config<GenericPoolable> config) {
-      return new BlazePool<>(config);
-    }
-  }
-
-  public static class StormpotQueuePool extends Stormpot {
-    @Override
-    protected LifecycledPool<GenericPoolable> buildPool(Config<GenericPoolable> config) {
-      return new QueuePool<>(config);
-    }
   }
 
   public static class Furious extends ClaimRelease {
     private nf.fr.eraasoft.pool.ObjectPool<MyFuriousObject> pool;
 
     @Override
-    public void preparePool() throws Exception {
+    public void preparePool() {
       PoolSettings<MyFuriousObject> settings = new PoolSettings<>(new MyPoolableObject());
       settings.min(0).max(poolSize);
       pool = settings.pool();
     }
 
     @Override
-    public void tearDownPool() throws Exception {
+    public void tearDownPool() {
       PoolControler.shutdown();
     }
 
@@ -136,7 +111,7 @@ public abstract class ClaimRelease
     }
 
     @Override
-    public void release(Object obj) throws Exception {
+    public void release(Object obj) {
       pool.returnObj((MyFuriousObject) obj);
     }
   }
@@ -145,8 +120,8 @@ public abstract class ClaimRelease
     private org.apache.commons.pool2.ObjectPool<MyCommons2Object> pool;
 
     @Override
-    public void preparePool() throws Exception {
-      GenericObjectPoolConfig config = new GenericObjectPoolConfig();
+    public void preparePool() {
+      GenericObjectPoolConfig<MyCommons2Object> config = new GenericObjectPoolConfig<>();
       config.setMaxTotal(poolSize);
       config.setBlockWhenExhausted(true);
       config.setTestOnBorrow(true);
@@ -155,7 +130,7 @@ public abstract class ClaimRelease
     }
 
     @Override
-    public void tearDownPool() throws Exception {
+    public void tearDownPool() {
       pool.close();
     }
 
@@ -191,7 +166,7 @@ public abstract class ClaimRelease
 
   public static class CommonsPoolGeneric extends CommonsPool {
     @Override
-    public void preparePool() throws Exception {
+    public void preparePool() {
       pool = new org.apache.commons.pool.impl.GenericObjectPool<>(
           new MyPoolableObjectFactory(),
           poolSize,
@@ -212,7 +187,7 @@ public abstract class ClaimRelease
 
   public static class CommonsPoolStack extends CommonsPool {
     @Override
-    public void preparePool() throws Exception {
+    public void preparePool() {
       pool = new org.apache.commons.pool.impl.StackObjectPool<>(
           new MyPoolableObjectFactory(),
           poolSize);
@@ -220,26 +195,27 @@ public abstract class ClaimRelease
   }
 
   public static class ViburObjectPool extends ClaimRelease {
-    private org.vibur.objectpool.ConcurrentLinkedPool<MyViburObject> pool;
+    private org.vibur.objectpool.ConcurrentPool<MyViburObject> pool;
 
     @Override
-    public void preparePool() throws Exception {
+    public void preparePool() {
       ViburObjectFactory factory = new ViburObjectFactory();
-      pool = new org.vibur.objectpool.ConcurrentLinkedPool<>(factory, poolSize, poolSize, false);
+      ConcurrentLinkedQueueCollection<MyViburObject> collection = new ConcurrentLinkedQueueCollection<>();
+      pool = new org.vibur.objectpool.ConcurrentPool<>(collection, factory, poolSize, poolSize, false);
     }
 
     @Override
-    public void tearDownPool() throws Exception {
+    public void tearDownPool() {
       pool.terminate();
     }
 
     @Override
-    public Object claim() throws Exception {
+    public Object claim() {
       return pool.take();
     }
 
     @Override
-    public void release(Object obj) throws Exception {
+    public void release(Object obj) {
       pool.restore((MyViburObject) obj);
     }
   }
@@ -248,12 +224,12 @@ public abstract class ClaimRelease
     EasyPool<Object> easyPool;
 
     @Override
-    public void preparePool() throws Exception {
+    public void preparePool() {
       easyPool = new EasyPool<>(poolSize);
     }
 
     @Override
-    public void tearDownPool() throws Exception {
+    public void tearDownPool() {
 
     }
 
@@ -281,11 +257,10 @@ public abstract class ClaimRelease
     ConcurrentBag<ConcurrentBag.IConcurrentBagEntry> bag;
 
     @Override
-    public void preparePool() throws Exception {
+    public void preparePool() {
       bag = new ConcurrentBag<>(new ConcurrentBag.IBagStateListener() {
         @Override
-        public Future<Boolean> addBagItem() {
-          return null;
+        public void addBagItem(int i) {
         }
       });
       for (int i = 0; i < poolSize; i++) {
@@ -299,6 +274,11 @@ public abstract class ClaimRelease
           }
 
           @Override
+          public void setState(int newState) {
+            state.set(newState);
+          }
+
+          @Override
           public int getState() {
             return state.get();
           }
@@ -307,7 +287,7 @@ public abstract class ClaimRelease
     }
 
     @Override
-    public void tearDownPool() throws Exception {
+    public void tearDownPool() {
 
     }
 
@@ -319,7 +299,7 @@ public abstract class ClaimRelease
     }
 
     @Override
-    public void release(Object obj) throws Exception {
+    public void release(Object obj) {
       bag.requite((ConcurrentBag.IConcurrentBagEntry) obj);
     }
   }

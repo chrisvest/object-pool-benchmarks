@@ -23,9 +23,7 @@ import objectpoolbenchmark.suite.stormpot.GenericAllocator;
 import objectpoolbenchmark.suite.stormpot.GenericPoolable;
 import objectpoolbenchmark.suite.stormpot.GenericPoolableExpiration;
 import org.openjdk.jmh.annotations.*;
-import stormpot.BlazePool;
-import stormpot.Config;
-import stormpot.LifecycledPool;
+import stormpot.Pool;
 import stormpot.Timeout;
 
 
@@ -38,7 +36,7 @@ import stormpot.Timeout;
 public class Simulation {
   private static final Timeout timeout = new Timeout(10, TimeUnit.SECONDS);
   private ThreadLocal<AtomicLong> tlr;
-  private LifecycledPool<GenericPoolable> pool;
+  private Pool<GenericPoolable> pool;
   private Callable<Object> objectCreator = new Callable<Object>() {
     @Override
     public Object call() throws Exception {
@@ -49,9 +47,7 @@ public class Simulation {
   @Setup
   public void setUp() {
     tlr = new ThreadLocal<>();
-    Config<GenericPoolable> config = new Config<>().setAllocator(new GenericAllocator()).setSize(10);
-    config.setExpiration(new GenericPoolableExpiration());
-    pool = new BlazePool<>(config);
+    pool = Pool.from(new GenericAllocator()).setSize(10).setExpiration(new GenericPoolableExpiration()).build();
   }
 
   @TearDown

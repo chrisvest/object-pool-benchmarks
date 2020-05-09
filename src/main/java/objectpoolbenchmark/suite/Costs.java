@@ -108,7 +108,7 @@ public class Costs {
     }
   }
 
-  private static enum CostUnit {
+  private enum CostUnit {
     CPU {
       @Override
       public void spend(long units) {
